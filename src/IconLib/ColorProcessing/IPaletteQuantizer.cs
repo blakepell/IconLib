@@ -25,7 +25,9 @@ namespace IconLib.ColorProcessing
     public interface IPaletteQuantizer
     {
         #region Methods
+
         ColorPalette CreatePalette(Bitmap image, int maxColors, int bitsPerPixel);
+
         #endregion
     }
 }

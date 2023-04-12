@@ -19,19 +19,6 @@
 
 namespace IconLib
 {
-    public enum MultiIconFormat
-    {
-        // Read-Write
-        ICO = 1
-    }
-
-    internal enum HeaderSignatures
-    {
-        IMAGE_DOS_SIGNATURE = 0x5A4D,      // MZ
-        IMAGE_OS2_SIGNATURE = 0x454E,      // NE
-        IMAGE_NT_SIGNATURE = 0x00004550   // PE00
-    }
-
     internal enum LoadLibraryFlags
     {
         DONT_RESOLVE_DLL_REFERENCES = 0x00000001,

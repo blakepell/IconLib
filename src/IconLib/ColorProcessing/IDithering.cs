@@ -23,6 +23,7 @@ namespace IconLib.ColorProcessing
 {
     public interface IDithering
     {
-        unsafe void Disperse(byte* pixelSource, int x, int y, byte bpp, int stride, int width, int height, Color colorEntry);
+        unsafe void Disperse(byte* pixelSource, int x, int y, byte bpp, int stride, int width, int height,
+            Color colorEntry);
     }
 }

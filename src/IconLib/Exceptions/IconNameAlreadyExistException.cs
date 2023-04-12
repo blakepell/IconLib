@@ -22,9 +22,11 @@ namespace IconLib.Exceptions
     public class IconNameAlreadyExistException : Exception
     {
         #region Constructors
+
         public IconNameAlreadyExistException() : base("Icon name already exist in the collection")
         {
         }
+
         #endregion
     }
 }

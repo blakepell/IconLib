@@ -25,34 +25,41 @@ namespace IconLib
     public class MultiIcon : List<SingleIcon>
     {
         #region Variables Declaration
+
         private int mSelectedIndex = -1;
+
         #endregion
 
         #region Constructors
+
         public MultiIcon()
         {
         }
 
         public MultiIcon(IEnumerable<SingleIcon> collection)
         {
-            AddRange(collection);
+            this.AddRange(collection);
         }
 
         public MultiIcon(SingleIcon singleIcon)
         {
-            Add(singleIcon);
-            SelectedName = singleIcon.Name;
+            this.Add(singleIcon);
+            this.SelectedName = singleIcon.Name;
         }
+
         #endregion
 
         #region Properties
+
         public int SelectedIndex
         {
             get => mSelectedIndex;
             set
             {
-                if (value >= Count)
-                    throw new ArgumentOutOfRangeException(nameof(SelectedIndex));
+                if (value >= this.Count)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(this.SelectedIndex));
+                }
 
                 mSelectedIndex = value;
             }
@@ -62,22 +69,28 @@ namespace IconLib
         {
             get
             {
-                if (mSelectedIndex < 0 || mSelectedIndex >= Count)
+                if (mSelectedIndex < 0 || mSelectedIndex >= this.Count)
+                {
                     return null;
+                }
 
                 return this[mSelectedIndex].Name;
             }
             set
             {
                 if (value == null)
-                    throw new ArgumentNullException(nameof(SelectedName));
+                {
+                    throw new ArgumentNullException(nameof(this.SelectedName));
+                }
 
-                for (int i = 0; i < Count; i++)
+                for (int i = 0; i < this.Count; i++)
+                {
                     if (this[i].Name.ToLower() == value.ToLower())
                     {
                         mSelectedIndex = i;
                         return;
                     }
+                }
 
                 throw new InvalidDataException("SelectedName does not exist.");
             }
@@ -87,86 +100,115 @@ namespace IconLib
         {
             get
             {
-                List<string> names = new List<string>();
-                foreach (SingleIcon icon in this)
+                var names = new List<string>();
+                foreach (var icon in this)
+                {
                     names.Add(icon.Name);
+                }
+
                 return names.ToArray();
             }
         }
+
         #endregion
 
         #region Indexers
+
         public SingleIcon this[string name]
         {
             get
             {
-                for (int i = 0; i < Count; i++)
+                for (int i = 0; i < this.Count; i++)
+                {
                     if (this[i].Name.ToLower() == name.ToLower())
+                    {
                         return this[i];
+                    }
+                }
+
                 return null;
             }
         }
+
         #endregion
 
         #region Public Methods
+
         public SingleIcon Add(string iconName)
         {
             // Already exist?
-            if (Contains(iconName))
+            if (this.Contains(iconName))
+            {
                 throw new IconNameAlreadyExistException();
+            }
 
             // Lets Create the icon group
             // Add group to the master list and also lets give a name
-            SingleIcon singleIcon = new SingleIcon(iconName);
-            Add(singleIcon);
+            var singleIcon = new SingleIcon(iconName);
+            this.Add(singleIcon);
             return singleIcon;
         }
 
         public void Remove(string iconName)
         {
             if (iconName == null)
+            {
                 throw new ArgumentNullException(nameof(iconName));
+            }
 
             // If not exist then do nothing
-            int index = IndexOf(iconName);
+            int index = this.IndexOf(iconName);
             if (index == -1)
+            {
                 return;
+            }
 
-            RemoveAt(index);
+            this.RemoveAt(index);
         }
 
         public bool Contains(string iconName)
         {
             if (iconName == null)
+            {
                 throw new ArgumentNullException(nameof(iconName));
+            }
 
             // Exist?
-            return IndexOf(iconName) != -1 ? true : false;
+            return this.IndexOf(iconName) != -1 ? true : false;
         }
 
         public int IndexOf(string iconName)
         {
             if (iconName == null)
+            {
                 throw new ArgumentNullException(nameof(iconName));
+            }
 
             // Exist?
-            for (int i = 0; i < Count; i++)
+            for (int i = 0; i < this.Count; i++)
+            {
                 if (this[i].Name.ToLower() == iconName.ToLower())
+                {
                     return i;
+                }
+            }
+
             return -1;
         }
 
         public void Load(string fileName)
         {
-            FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
+            var fs = new FileStream(fileName, FileMode.Open, FileAccess.Read);
             try
             {
-                Load(fs);
+                this.Load(fs);
             }
             finally
             {
                 if (fs != null)
+                {
                     fs.Close();
+                }
             }
         }
 
@@ -178,8 +220,8 @@ namespace IconLib
             {
                 if (mSelectedIndex == -1)
                 {
-                    Clear();
-                    Add(baseFormat.Load(stream)[0]);
+                    this.Clear();
+                    this.Add(baseFormat.Load(stream)[0]);
                     this[0].Name = "Untitled";
                 }
                 else
@@ -194,39 +236,46 @@ namespace IconLib
                 throw new InvalidFileException();
             }
 
-            SelectedIndex = Count > 0 ? 0 : -1;
+            this.SelectedIndex = this.Count > 0 ? 0 : -1;
         }
 
         public void Save(string fileName)
         {
-            FileStream fs = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite);
+            var fs = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite);
             try
             {
-                Save(fs);
+                this.Save(fs);
             }
             finally
             {
                 if (fs != null)
+                {
                     fs.Close();
+                }
             }
         }
 
         public void Save(Stream stream)
         {
             if (mSelectedIndex == -1)
+            {
                 throw new InvalidIconSelectionException();
+            }
 
             new IconFormat().Save(this, stream);
         }
+
         #endregion
 
         #region Private Methods
+
         private void CopyFrom(MultiIcon multiIcon)
         {
             mSelectedIndex = multiIcon.mSelectedIndex;
-            Clear();
-            AddRange(multiIcon);
+            this.Clear();
+            this.AddRange(multiIcon);
         }
+
         #endregion
     }
 }

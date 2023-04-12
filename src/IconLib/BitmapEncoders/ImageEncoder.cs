@@ -33,15 +33,15 @@ namespace IconLib.BitmapEncoders
         {
             get
             {
-                MemoryStream ms = new MemoryStream();
+                var ms = new MemoryStream();
 
                 // ICONDIR
-                ICONDIR iconDir = ICONDIR.Initalizated;
+                var iconDir = ICONDIR.Initalizated;
                 iconDir.idCount = 1;
                 iconDir.Write(ms);
 
                 // ICONDIRENTRY 
-                ICONDIRENTRY iconEntry = new ICONDIRENTRY
+                var iconEntry = new ICONDIRENTRY
                 {
                     bColorCount = (byte)mHeader.biClrUsed,
                     bHeight = (byte)(mHeader.biHeight / 2),
@@ -61,8 +61,8 @@ namespace IconLib.BitmapEncoders
                 mHeader.Write(ms);
 
                 // Image Palette
-                byte[] buffer = new byte[sizeof(RGBQUAD) * ColorsInPalette];
-                GCHandle handle = GCHandle.Alloc(mColors, GCHandleType.Pinned);
+                byte[] buffer = new byte[sizeof(RGBQUAD) * this.ColorsInPalette];
+                var handle = GCHandle.Alloc(mColors, GCHandleType.Pinned);
                 Marshal.Copy(handle.AddrOfPinnedObject(), buffer, 0, buffer.Length);
                 handle.Free();
                 ms.Write(buffer, 0, buffer.Length);
@@ -75,7 +75,7 @@ namespace IconLib.BitmapEncoders
 
                 // Rewind the stream
                 ms.Position = 0;
-                Icon icon = new Icon(ms, iconEntry.bWidth, iconEntry.bHeight);
+                var icon = new Icon(ms, iconEntry.bWidth, iconEntry.bHeight);
                 ms.Dispose();
                 return icon;
             }
@@ -110,17 +110,13 @@ namespace IconLib.BitmapEncoders
         }
 
         public virtual int ColorsInPalette =>
-            (int)(mHeader.biClrUsed != 0 ?
-                mHeader.biClrUsed :
-                mHeader.biBitCount <= 8 ?
-                    (uint)(1 << mHeader.biBitCount) : 0);
+            (int)(mHeader.biClrUsed != 0 ? mHeader.biClrUsed :
+                mHeader.biBitCount <= 8 ? (uint)(1 << mHeader.biBitCount) : 0);
 
-        public virtual unsafe int ImageSize => sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * ColorsInPalette + mXOR.Length + mAND.Length;
+        public virtual unsafe int ImageSize =>
+            sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * this.ColorsInPalette + mXOR.Length + mAND.Length;
 
-        public abstract IconImageFormat IconImageFormat
-        {
-            get;
-        }
+        public abstract IconImageFormat IconImageFormat { get; }
 
         public abstract void Read(Stream stream, int resourceSize);
         public abstract void Write(Stream stream);

@@ -21,7 +21,7 @@ using System.Runtime.InteropServices;
 
 namespace IconLib.BitmapEncoders
 {
-    internal class BMPEncoder : ImageEncoder
+    internal class BmpEncoder : ImageEncoder
     {
         public override IconImageFormat IconImageFormat => IconImageFormat.BMP;
 
@@ -31,20 +31,20 @@ namespace IconLib.BitmapEncoders
             mHeader.Read(stream);
 
             // Palette
-            mColors = new RGBQUAD[ColorsInPalette];
+            mColors = new RGBQUAD[this.ColorsInPalette];
             byte[] colorBuffer = new byte[mColors.Length * sizeof(RGBQUAD)];
             _ = stream.Read(colorBuffer, 0, colorBuffer.Length);
-            GCHandle handle = GCHandle.Alloc(mColors, GCHandleType.Pinned);
+            var handle = GCHandle.Alloc(mColors, GCHandleType.Pinned);
             Marshal.Copy(colorBuffer, 0, handle.AddrOfPinnedObject(), colorBuffer.Length);
             handle.Free();
 
             // XOR Image
-            int stride = (int)(mHeader.biWidth * mHeader.biBitCount + 31 & ~31) >> 3;
+            int stride = (int)((mHeader.biWidth * mHeader.biBitCount + 31) & ~31) >> 3;
             mXOR = new byte[stride * (mHeader.biHeight / 2)];
             _ = stream.Read(mXOR, 0, mXOR.Length);
 
             // AND Image
-            stride = (int)(mHeader.biWidth * 1 + 31 & ~31) >> 3;
+            stride = (int)((mHeader.biWidth * 1 + 31) & ~31) >> 3;
             mAND = new byte[stride * (mHeader.biHeight / 2)];
             _ = stream.Read(mAND, 0, mAND.Length);
         }
@@ -55,8 +55,8 @@ namespace IconLib.BitmapEncoders
             mHeader.Write(stream);
 
             // Palette
-            byte[] buffer = new byte[ColorsInPalette * sizeof(RGBQUAD)];
-            GCHandle handle = GCHandle.Alloc(mColors, GCHandleType.Pinned);
+            byte[] buffer = new byte[this.ColorsInPalette * sizeof(RGBQUAD)];
+            var handle = GCHandle.Alloc(mColors, GCHandleType.Pinned);
             Marshal.Copy(handle.AddrOfPinnedObject(), buffer, 0, buffer.Length);
             handle.Free();
             stream.Write(buffer, 0, buffer.Length);

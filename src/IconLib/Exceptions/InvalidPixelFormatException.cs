@@ -24,13 +24,14 @@ namespace IconLib.Exceptions
     public class InvalidPixelFormatException : Exception
     {
         #region Constructors
-        public InvalidPixelFormatException(PixelFormat invalid, PixelFormat expected) : base(invalid != PixelFormat.Undefined ?
-                                                                                            "PixelFormat " + invalid + " is invalid" :
-                                                                                            expected != PixelFormat.Undefined ?
-                                                                                            "PixelFormat " + expected + " expected" :
-                                                                                            "Invalid PixelFormat")
+
+        public InvalidPixelFormatException(PixelFormat invalid, PixelFormat expected) : base(
+            invalid != PixelFormat.Undefined ? "PixelFormat " + invalid + " is invalid" :
+            expected != PixelFormat.Undefined ? "PixelFormat " + expected + " expected" :
+            "Invalid PixelFormat")
         {
         }
+
         #endregion
     }
 }

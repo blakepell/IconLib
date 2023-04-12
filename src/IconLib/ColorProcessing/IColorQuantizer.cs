@@ -25,7 +25,9 @@ namespace IconLib.ColorProcessing
     public interface IColorQuantizer
     {
         #region Methods
+
         Bitmap Convert(Bitmap source, PixelFormat outputFormat);
+
         #endregion
     }
 }

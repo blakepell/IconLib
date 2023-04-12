@@ -22,7 +22,7 @@ using System.Drawing.Imaging;
 
 namespace IconLib.BitmapEncoders
 {
-    internal class PNGEncoder : ImageEncoder
+    internal class PngEncoder : ImageEncoder
     {
         public override IconImageFormat IconImageFormat => IconImageFormat.PNG;
 
@@ -33,8 +33,8 @@ namespace IconLib.BitmapEncoders
                 // This is a fast and temporary solution,
                 // Soon Ill implement a png cache, 
                 // then the image will be generated just once between calls and writes
-                MemoryStream ms = new MemoryStream();
-                Icon.ToBitmap().Save(ms, ImageFormat.Png);
+                var ms = new MemoryStream();
+                this.Icon.ToBitmap().Save(ms, ImageFormat.Png);
                 return (int)ms.Length;
             }
         }
@@ -44,22 +44,22 @@ namespace IconLib.BitmapEncoders
             // Buffer a PNG image
             byte[] buffer = new byte[resourceSize];
             _ = stream.Read(buffer, 0, buffer.Length);
-            MemoryStream ms = new MemoryStream(buffer);
-            Bitmap pngBitmap = new Bitmap(ms);
+            var ms = new MemoryStream(buffer);
+            var pngBitmap = new Bitmap(ms);
 
             // Set XOR and AND Image
-            IconImage iconImage = new IconImage();
+            var iconImage = new IconImage();
             iconImage.Set(pngBitmap, null, Color.Transparent);
             pngBitmap.Dispose();
 
             //Transfer the data from the BMPEncoder to the PNGEncoder
-            CopyFrom(iconImage.Encoder);
+            this.CopyFrom(iconImage.Encoder);
         }
 
         public override void Write(Stream stream)
         {
-            MemoryStream ms = new MemoryStream();
-            Icon.ToBitmap().Save(ms, ImageFormat.Png);
+            var ms = new MemoryStream();
+            this.Icon.ToBitmap().Save(ms, ImageFormat.Png);
             byte[] buffer = ms.GetBuffer();
             stream.Write(buffer, 0, (int)ms.Length);
         }

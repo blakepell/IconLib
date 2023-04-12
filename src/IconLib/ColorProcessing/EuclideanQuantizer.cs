@@ -26,12 +26,15 @@ namespace IconLib.ColorProcessing
     public class EuclideanQuantizer : IColorQuantizer
     {
         #region Variables Declaration
+
         private IPaletteQuantizer mQuantizer;
         private IDithering mDithering;
         private Dictionary<uint, byte> mColorMap;
+
         #endregion
 
         #region Constructors
+
         public EuclideanQuantizer() : this(new OctreeQuantizer(), new FloydSteinbergDithering())
         {
         }
@@ -41,17 +44,21 @@ namespace IconLib.ColorProcessing
             mQuantizer = quantizer ?? throw new Exception("param 'quantizer' cannot be null");
             mDithering = dithering;
         }
+
         #endregion
 
         #region Methods
+
         public unsafe Bitmap Convert(Bitmap source, PixelFormat outputFormat)
         {
-            DateTime dt1 = DateTime.Now;
+            var dt1 = DateTime.Now;
 
             if ((outputFormat & PixelFormat.Indexed) != PixelFormat.Indexed)
+            {
                 throw new Exception("Output format must be one of the indexed formats");
+            }
 
-            Bitmap bmpTrg = new Bitmap(source.Width, source.Height, outputFormat);
+            var bmpTrg = new Bitmap(source.Width, source.Height, outputFormat);
 
             //Hashtable to chache the mapped colors.
             mColorMap = new Dictionary<uint, byte>();
@@ -60,7 +67,7 @@ namespace IconLib.ColorProcessing
             switch (outputFormat)
             {
                 case PixelFormat.Format1bppIndexed:
-                    Bitmap bmp = new Bitmap(1, 1, PixelFormat.Format1bppIndexed);
+                    var bmp = new Bitmap(1, 1, PixelFormat.Format1bppIndexed);
                     newPalette = bmp.Palette;
                     bmp.Dispose();
 
@@ -77,11 +84,13 @@ namespace IconLib.ColorProcessing
                     throw new Exception("Indexed format not supported");
             }
 
-            DateTime dt2 = DateTime.Now;
+            var dt2 = DateTime.Now;
 
             // Pointers to the source and target bitmaps
-            BitmapData bitmapDataSource = source.LockBits(new Rectangle(0, 0, source.Width, source.Height), ImageLockMode.ReadWrite, source.PixelFormat);
-            BitmapData bitmapDataTarget = bmpTrg.LockBits(new Rectangle(0, 0, bmpTrg.Width, bmpTrg.Height), ImageLockMode.WriteOnly, bmpTrg.PixelFormat);
+            var bitmapDataSource = source.LockBits(new Rectangle(0, 0, source.Width, source.Height),
+                ImageLockMode.ReadWrite, source.PixelFormat);
+            var bitmapDataTarget = bmpTrg.LockBits(new Rectangle(0, 0, bmpTrg.Width, bmpTrg.Height),
+                ImageLockMode.WriteOnly, bmpTrg.PixelFormat);
 
             try
             {
@@ -97,7 +106,7 @@ namespace IconLib.ColorProcessing
 
                 bmpTrg.Palette = newPalette;
 
-                DateTime dt3 = DateTime.Now;
+                var dt3 = DateTime.Now;
                 for (int y = 0; y < Height; y++)
                 {
                     byte* pixelSourceB = (byte*)pixelSource + y * bitmapDataSource.Stride;
@@ -105,13 +114,13 @@ namespace IconLib.ColorProcessing
 
                     for (int x = 0; x < Width; x++)
                     {
-                        GetRGB(pixelSourceB, bpp, x, ref r, ref g, ref b, ref colorMatch);
+                        this.GetRGB(pixelSourceB, bpp, x, ref r, ref g, ref b, ref colorMatch);
 
                         // To get better performace after find a near color, lets put on a hashtable
                         // if the color is found in the hash table, we just get it form there
                         if (!mColorMap.TryGetValue(colorMatch, out byte index))
                         {
-                            index = (byte)FindNearestColor(r, g, b, newPalette.Entries);
+                            index = (byte)this.FindNearestColor(r, g, b, newPalette.Entries);
                             mColorMap.Add(colorMatch, index);
                         }
 
@@ -119,16 +128,20 @@ namespace IconLib.ColorProcessing
                         switch (outputFormat)
                         {
                             case PixelFormat.Format1bppIndexed:
-                                byte mask = (byte)(0x80 >> (x - 1 & 0x7));
+                                byte mask = (byte)(0x80 >> ((x - 1) & 0x7));
                                 if (index == 1)
+                                {
                                     *pixelTargetB |= mask;
+                                }
                                 else
+                                {
                                     *pixelTargetB &= (byte)(mask ^ 0xff);
+                                }
 
                                 pixelTargetB += x % 8 == 0 && x != 0 ? 1 : 0;
                                 break;
                             case PixelFormat.Format4bppIndexed:
-                                *pixelTargetB |= (byte)(index << ((x - 1 & 1) << 2));
+                                *pixelTargetB |= (byte)(index << (((x - 1) & 1) << 2));
                                 pixelTargetB += x & 1;
                                 break;
                             case PixelFormat.Format8bppIndexed:
@@ -139,12 +152,16 @@ namespace IconLib.ColorProcessing
 
                         //Dithering
                         if (mDithering != null)
-                            mDithering.Disperse(pixelSourceB, x, y, bpp, bitmapDataSource.Stride, Width, Height, newPalette.Entries[index]);
+                        {
+                            mDithering.Disperse(pixelSourceB, x, y, bpp, bitmapDataSource.Stride, Width, Height,
+                                newPalette.Entries[index]);
+                        }
                     }
                 }
-                DateTime dt4 = DateTime.Now;
 
-                TimeSpan ts = dt4.Subtract(dt3);
+                var dt4 = DateTime.Now;
+
+                var ts = dt4.Subtract(dt3);
                 Debug.WriteLine(ts.TotalMilliseconds);
                 ts = dt3.Subtract(dt2);
                 Debug.WriteLine(ts.TotalMilliseconds);
@@ -184,7 +201,8 @@ namespace IconLib.ColorProcessing
             return bestIndex;
         }
 
-        private unsafe void GetRGB(byte* firstStridePixel, byte bpp, int x, ref byte r, ref byte g, ref byte b, ref uint ARGBColor)
+        private unsafe void GetRGB(byte* firstStridePixel, byte bpp, int x, ref byte r, ref byte g, ref byte b,
+            ref uint ARGBColor)
         {
             byte* pixelSourceBT;
             switch (bpp)
@@ -201,7 +219,7 @@ namespace IconLib.ColorProcessing
                     r = *(pixelSourceBT + 2);
                     g = *(pixelSourceBT + 1);
                     b = *(pixelSourceBT + 0);
-                    ARGBColor = (uint)(r << 16 | g << 8 | b);
+                    ARGBColor = (uint)((r << 16) | (g << 8) | b);
                     break;
                 case 32:
                     pixelSourceBT = firstStridePixel + x * 4;
@@ -212,6 +230,7 @@ namespace IconLib.ColorProcessing
                     break;
             }
         }
+
         #endregion
     }
 }

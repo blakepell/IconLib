@@ -32,10 +32,13 @@ namespace IconLib
         public static unsafe void FlipYBitmap(Bitmap bitmap)
         {
             if (bitmap.PixelFormat != PixelFormat.Format1bppIndexed)
+            {
                 return;
+            }
 
             // .Net bug.. it can't flip in the Y axis a 1bpp properly
-            BitmapData bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadWrite, PixelFormat.Format1bppIndexed);
+            var bitmapData = bitmap.LockBits(new Rectangle(0, 0, bitmap.Width, bitmap.Height), ImageLockMode.ReadWrite,
+                PixelFormat.Format1bppIndexed);
 
             byte* pixelPtr = (byte*)bitmapData.Scan0.ToPointer();
             byte[] tmpbuffer = new byte[bitmapData.Stride];
@@ -45,9 +48,10 @@ namespace IconLib
                 for (int i = 0; i < bitmap.Height / 2; i++)
                 {
                     Win32.CopyMemory(lptmpbuffer, pixelPtr + i * bitmapData.Stride, bitmapData.Stride);
-                    Win32.CopyMemory(pixelPtr + i * bitmapData.Stride, pixelPtr + (bitmap.Height - 1 - i) * bitmapData.Stride, bitmapData.Stride);
-                    Win32.CopyMemory(pixelPtr + (bitmap.Height - 1 - i) * bitmapData.Stride, lptmpbuffer, bitmapData.Stride);
-
+                    Win32.CopyMemory(pixelPtr + i * bitmapData.Stride,
+                        pixelPtr + (bitmap.Height - 1 - i) * bitmapData.Stride, bitmapData.Stride);
+                    Win32.CopyMemory(pixelPtr + (bitmap.Height - 1 - i) * bitmapData.Stride, lptmpbuffer,
+                        bitmapData.Stride);
                 }
             }
 
@@ -56,9 +60,11 @@ namespace IconLib
 
         public static RGBQUAD[] StandarizePalette(RGBQUAD[] palette)
         {
-            RGBQUAD[] newPalette = new RGBQUAD[256];
+            var newPalette = new RGBQUAD[256];
             for (int i = 0; i < palette.Length; i++)
+            {
                 newPalette[i] = palette[i];
+            }
 
             return newPalette;
         }
@@ -67,14 +73,15 @@ namespace IconLib
         {
             // Some programs as Axialis have problems with a reduced palette, so lets create a full palette
             int bits = BitsFromPixelFormat(bmp.PixelFormat);
-            RGBQUAD[] rgbArray = new RGBQUAD[bits <= 8 ? 1 << bits : 0];
-            Color[] entries = bmp.Palette.Entries;
+            var rgbArray = new RGBQUAD[bits <= 8 ? 1 << bits : 0];
+            var entries = bmp.Palette.Entries;
             for (int i = 0; i < entries.Length; i++)
             {
                 rgbArray[i].rgbRed = entries[i].R;
                 rgbArray[i].rgbGreen = entries[i].G;
                 rgbArray[i].rgbBlue = entries[i].B;
             }
+
             return rgbArray;
         }
 

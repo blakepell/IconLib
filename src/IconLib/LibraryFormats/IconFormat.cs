@@ -24,35 +24,46 @@ namespace IconLib.LibraryFormats
     internal class IconFormat
     {
         #region Methods
+
         public bool IsRecognizedFormat(Stream stream)
         {
             stream.Position = 0;
             try
             {
-                ICONDIR iconDir = new ICONDIR(stream);
+                var iconDir = new ICONDIR(stream);
                 if (iconDir.idReserved != 0)
+                {
                     return false;
+                }
 
                 if (iconDir.idType != 1)
+                {
                     return false;
+                }
 
                 return true;
-
             }
-            catch { }
+            catch
+            {
+            }
+
             return false;
         }
 
         public unsafe MultiIcon Load(Stream stream)
         {
             stream.Position = 0;
-            SingleIcon singleIcon = new SingleIcon("Untitled");
-            ICONDIR iconDir = new ICONDIR(stream);
+            var singleIcon = new SingleIcon("Untitled");
+            var iconDir = new ICONDIR(stream);
             if (iconDir.idReserved != 0)
+            {
                 throw new InvalidMultiIconFileException();
+            }
 
             if (iconDir.idType != 1)
+            {
                 throw new InvalidMultiIconFileException();
+            }
 
             int entryOffset = sizeof(ICONDIR);
 
@@ -60,7 +71,7 @@ namespace IconLib.LibraryFormats
             for (int i = 0; i < iconDir.idCount; i++)
             {
                 stream.Seek(entryOffset, SeekOrigin.Begin);
-                ICONDIRENTRY entry = new ICONDIRENTRY(stream);
+                var entry = new ICONDIRENTRY(stream);
 
                 // If there is missing information in the header... lets try to calculate it
                 entry = CheckAndRepairEntry(entry);
@@ -77,19 +88,21 @@ namespace IconLib.LibraryFormats
         public unsafe void Save(MultiIcon multiIcon, Stream stream)
         {
             if (multiIcon.SelectedIndex == -1)
+            {
                 return;
+            }
 
-            SingleIcon singleIcon = multiIcon[multiIcon.SelectedIndex];
+            var singleIcon = multiIcon[multiIcon.SelectedIndex];
 
             // ICONDIR header
-            ICONDIR iconDir = ICONDIR.Initalizated;
+            var iconDir = ICONDIR.Initalizated;
             iconDir.idCount = (ushort)singleIcon.Count;
             iconDir.Write(stream);
 
             // ICONENTRIES
             int entryPos = sizeof(ICONDIR);
             int imagesPos = sizeof(ICONDIR) + iconDir.idCount * sizeof(ICONDIRENTRY);
-            foreach (IconImage iconImage in singleIcon)
+            foreach (var iconImage in singleIcon)
             {
                 // for some formats We don't know the size until we write, 
                 // so we have to write first the image then later the header
@@ -101,7 +114,7 @@ namespace IconLib.LibraryFormats
 
                 // IconDirHeader
                 stream.Seek(entryPos, SeekOrigin.Begin);
-                ICONDIRENTRY iconEntry = iconImage.ICONDIRENTRY;
+                var iconEntry = iconImage.ICONDIRENTRY;
                 stream.Seek(entryPos, SeekOrigin.Begin);
                 iconEntry.dwImageOffset = (uint)imagesPos;
                 iconEntry.dwBytesInRes = (uint)bytesInRes;
@@ -111,16 +124,18 @@ namespace IconLib.LibraryFormats
                 imagesPos += (int)bytesInRes;
             }
         }
+
         #endregion
 
         #region Private Methods
+
         private static unsafe ICONDIRENTRY CheckAndRepairEntry(ICONDIRENTRY entry)
         {
             // If there is missing information in the header... lets try to calculate it
             if (entry.wBitCount == 0)
             {
                 int bmpSize = (ushort)entry.dwBytesInRes - sizeof(BITMAPINFOHEADER);
-                int BWStride = (entry.bWidth * 1 + 31 & ~31) >> 3;
+                int BWStride = ((entry.bWidth * 1 + 31) & ~31) >> 3;
                 int BWSize = BWStride * entry.bHeight;
                 bmpSize -= BWSize;
 
@@ -129,7 +144,7 @@ namespace IconLib.LibraryFormats
                 int j = 0;
                 while (j <= 5)
                 {
-                    int stride = (entry.bWidth * bpp[j] + 31 & ~31) >> 3;
+                    int stride = ((entry.bWidth * bpp[j] + 31) & ~31) >> 3;
                     int CLSSize = entry.bHeight * stride;
                     int palette = bpp[j] <= 8 ? (1 << bpp[j]) * 4 : 0;
                     if (palette + CLSSize == bmpSize)
@@ -137,17 +152,24 @@ namespace IconLib.LibraryFormats
                         entry.wBitCount = bpp[j];
                         break;
                     }
+
                     j++;
                 }
             }
 
             if (entry.wBitCount < 8 && entry.bColorCount == 0)
+            {
                 entry.bColorCount = (byte)(1 << entry.wBitCount);
+            }
+
             if (entry.wPlanes == 0)
+            {
                 entry.wPlanes = 1;
+            }
 
             return entry;
         }
+
         #endregion
     }
 }
